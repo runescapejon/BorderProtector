@@ -15,7 +15,6 @@ public class BorderProtector {
 	@Listener
 	public void block(MoveEntityEvent event, @Getter("getTargetEntity") Player player) {
 		if (check(player)) {
-			event.setCancelled(true);
 			player.sendMessage(Text.of(TextColors.RED, "You cannot ender-pearl outside the border!"));
 			//Just a side note that it seem if i use 1 tick i get a "switching phase error"
 			//Also that i put 2 that it work out fine in addition i cannot use grab player location and set it that i had to use Transform
