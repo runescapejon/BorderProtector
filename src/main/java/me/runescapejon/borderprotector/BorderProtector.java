@@ -10,6 +10,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.entity.MoveEntityEvent;
 import org.spongepowered.api.event.filter.Getter;
+import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.text.Text;
@@ -79,7 +80,10 @@ public class BorderProtector {
 	public Language getLangCfg() {
 		return configmsg;
 	}
-
+	   @Listener
+	    public void onReload(GameReloadEvent event) {
+		   loadConfig();
+	   }
 	public boolean loadConfig() {
 		if (!plugin.getConfigDirectory().exists()) {
 			plugin.getConfigDirectory().mkdirs();
