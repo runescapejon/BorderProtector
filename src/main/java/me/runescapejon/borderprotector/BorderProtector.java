@@ -22,7 +22,7 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.GuiceObjectMapperFactory;
 
-@Plugin(id = "borderprotector", name = "BorderProtector", description = "Secure your border with this", version = "1.0")
+@Plugin(id = "borderprotector", name = "BorderProtector", description = "Secure your border with this", version = "1.1")
 public class BorderProtector {
 	public static BorderProtector instance;
 	private BorderProtector plugin;
