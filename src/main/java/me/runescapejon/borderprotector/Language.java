@@ -15,5 +15,10 @@ public class Language {
 	public static Text getMessage() {
 		return TextSerializers.FORMATTING_CODE.deserialize(plugin.getLangCfg().Message);
 	}
+	@Setting(value = "TeleportSpawn", comment = "If true have them teleport back to that world spawn point")
+	public static boolean TeleportSpawn = false;
+
+	@Setting(value = "Use Nucleus RTP", comment = "If true get nucleus to type rtp for players instead of spawn point")
+	public static boolean UseNucleusRTP = true;
 
 }

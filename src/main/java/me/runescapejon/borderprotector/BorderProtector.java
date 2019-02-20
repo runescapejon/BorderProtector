@@ -1,9 +1,11 @@
 package me.runescapejon.borderprotector;
 
 import java.io.File;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
 import org.slf4j.Logger;
 
-import org.spongepowered.api.Game;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.entity.living.player.Player;
@@ -12,18 +14,29 @@ import org.spongepowered.api.event.entity.MoveEntityEvent;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
+import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.scheduler.Scheduler;
+import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
+
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
+
+import io.github.nucleuspowered.nucleus.api.NucleusAPI;
+import io.github.nucleuspowered.nucleus.api.service.NucleusRTPService;
 import ninja.leaping.configurate.ConfigurationOptions;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.GuiceObjectMapperFactory;
 
-@Plugin(id = "borderprotector", name = "BorderProtector", description = "Secure your border with this", version = "1.1")
+@Plugin(id = "borderprotector", name = "BorderProtector", description = "Secure your border with this", version = "1.2", dependencies = {
+		@Dependency(id = "nucleus", optional = true) })
 public class BorderProtector {
+
 	public static BorderProtector instance;
 	private BorderProtector plugin;
 	private Logger logger;
@@ -32,23 +45,47 @@ public class BorderProtector {
 	private final File configDirectory;
 
 	@Inject
-	public BorderProtector(Logger logger, Game game, @ConfigDir(sharedRoot = false) File configDir,
+	public BorderProtector(Logger logger, @ConfigDir(sharedRoot = false) File configDir,
 			GuiceObjectMapperFactory factory) {
 		this.logger = logger;
+
 		this.configDirectory = configDir;
 		this.factory = factory;
 		instance = this;
 	}
 
 	@Listener
-	public void block(MoveEntityEvent event, @Getter("getTargetEntity") Player player) {
+	public void BlockBypass(MoveEntityEvent event, @Getter("getTargetEntity") Player player) {
 		if (check(player)) {
 			player.sendMessage(Text.builder().append(Language.getMessage()).build());
-			// Just a side note that it seem if i use 1 tick i get a "switching phase error"
-			// Also that i put 2 that it work out fine in addition i cannot use grab player
-			// location and set it that i had to use Transform
-			event.setToTransform(event.getFromTransform().setLocation(player.getWorld().getSpawnLocation()));
-			Sponge.getScheduler().createTaskBuilder().delayTicks(2).execute(() -> event.setCancelled(true));
+			if (Language.TeleportSpawn) {
+				event.setToTransform(event.getFromTransform().setLocation(player.getWorld().getSpawnLocation()));
+				event.setCancelled(true);
+			}
+			if (Language.UseNucleusRTP) {
+				if (Sponge.getPluginManager().getPlugin("nucleus").isPresent()) {	     
+					NucleusRTPService.RTPOptions options = NucleusAPI.getRTPService().get().options();
+					NucleusRTPService Service = NucleusAPI.getRTPService().get();
+					for (Task task : Sponge.getScheduler().getScheduledTasks()) {
+						Optional<Location<World>> rtp = Service.getLocation(player.getLocation(), player.getWorld(),
+								options);
+						if (rtp.isPresent()) {
+							//System.out.println(rtp);
+							player.setLocation(rtp.get());
+							task.cancel();
+						}
+						if (!rtp.isPresent()) {
+							//event.setCancelled(true); It seem i dont need it. It instantly teleport you random.
+							//Also that there a weird system that setCancelled(true) effect nucleus
+					
+						}
+					}
+				      
+			        }
+				}
+				if (!Sponge.getPluginManager().getPlugin("nucleus").isPresent()) {
+					logger.info("[BorderProtector] Nucleus not installed");
+				}
 		}
 	}
 
@@ -80,10 +117,12 @@ public class BorderProtector {
 	public Language getLangCfg() {
 		return configmsg;
 	}
-	   @Listener
-	    public void onReload(GameReloadEvent event) {
-		   loadConfig();
-	   }
+
+	@Listener
+	public void onReload(GameReloadEvent event) {
+		loadConfig();
+	}
+
 	public boolean loadConfig() {
 		if (!plugin.getConfigDirectory().exists()) {
 			plugin.getConfigDirectory().mkdirs();
@@ -103,6 +142,7 @@ public class BorderProtector {
 			return true;
 		} catch (Exception error) {
 			getLogger().error("coudnt make the config", error);
+
 			return false;
 		}
 	}
