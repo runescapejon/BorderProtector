@@ -60,7 +60,8 @@ public class BorderProtector {
 			player.sendMessage(Text.builder().append(Language.getMessage()).build());
 			if (Language.TeleportSpawn) {
 				event.setToTransform(event.getFromTransform().setLocation(player.getWorld().getSpawnLocation()));
-				event.setCancelled(true);
+				Sponge.getScheduler().createTaskBuilder().delayTicks(1)
+						.execute(() -> event.setCancelled(true)).submit(instance);
 			}
 			if (Language.UseNucleusRTP) {
 				if (Sponge.getPluginManager().getPlugin("nucleus").isPresent()) {	     
