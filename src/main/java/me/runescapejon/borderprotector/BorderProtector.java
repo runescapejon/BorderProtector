@@ -71,7 +71,7 @@ public class BorderProtector {
 								options);
 						if (rtp.isPresent()) {
 							//System.out.println(rtp);
-							player.setLocation(rtp.get());
+							event.setToTransform(event.getFromTransform().setLocation(rtp.get()));
 							task.cancel();
 						}
 						if (!rtp.isPresent()) {
