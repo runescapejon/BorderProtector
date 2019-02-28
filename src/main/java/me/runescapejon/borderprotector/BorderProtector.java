@@ -2,8 +2,6 @@ package me.runescapejon.borderprotector;
 
 import java.io.File;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 
 import org.spongepowered.api.Sponge;
@@ -16,7 +14,6 @@ import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
-import org.spongepowered.api.scheduler.Scheduler;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.world.Location;
@@ -33,7 +30,7 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.GuiceObjectMapperFactory;
 
-@Plugin(id = "borderprotector", name = "BorderProtector", description = "Secure your border with this", version = "1.2", dependencies = {
+@Plugin(id = "borderprotector", name = "BorderProtector", description = "Secure your border with this", version = "1.3", dependencies = {
 		@Dependency(id = "nucleus", optional = true) })
 public class BorderProtector {
 
@@ -60,33 +57,34 @@ public class BorderProtector {
 			player.sendMessage(Text.builder().append(Language.getMessage()).build());
 			if (Language.TeleportSpawn) {
 				event.setToTransform(event.getFromTransform().setLocation(player.getWorld().getSpawnLocation()));
-				Sponge.getScheduler().createTaskBuilder().delayTicks(1)
-						.execute(() -> event.setCancelled(true)).submit(instance);
+				Sponge.getScheduler().createTaskBuilder().delayTicks(1).execute(() -> event.setCancelled(true))
+						.submit(instance);
 			}
 			if (Language.UseNucleusRTP) {
-				if (Sponge.getPluginManager().getPlugin("nucleus").isPresent()) {	     
+				if (Sponge.getPluginManager().getPlugin("nucleus").isPresent()) {
 					NucleusRTPService.RTPOptions options = NucleusAPI.getRTPService().get().options();
 					NucleusRTPService Service = NucleusAPI.getRTPService().get();
 					for (Task task : Sponge.getScheduler().getScheduledTasks()) {
 						Optional<Location<World>> rtp = Service.getLocation(player.getLocation(), player.getWorld(),
 								options);
 						if (rtp.isPresent()) {
-							//System.out.println(rtp);
+							// System.out.println(rtp);
 							event.setToTransform(event.getFromTransform().setLocation(rtp.get()));
 							task.cancel();
 						}
 						if (!rtp.isPresent()) {
-							//event.setCancelled(true); It seem i dont need it. It instantly teleport you random.
-							//Also that there a weird system that setCancelled(true) effect nucleus
-					
+							// event.setCancelled(true); It seem i dont need it. It instantly teleport you
+							// random.
+							// Also that there a weird system that setCancelled(true) effect nucleus
+
 						}
 					}
-				      
-			        }
+
 				}
-				if (!Sponge.getPluginManager().getPlugin("nucleus").isPresent()) {
-					logger.info("[BorderProtector] Nucleus not installed");
-				}
+			}
+			if (!Sponge.getPluginManager().getPlugin("nucleus").isPresent()) {
+				logger.info("[BorderProtector] Nucleus not installed");
+			}
 		}
 	}
 
