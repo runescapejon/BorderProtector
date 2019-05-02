@@ -82,7 +82,7 @@ public class BorderProtector {
 
 				}
 			}
-			if (!Sponge.getPluginManager().getPlugin("nucleus").isPresent()) {
+			if (Language.UseNucleusRTP &&!Sponge.getPluginManager().getPlugin("nucleus").isPresent()) {
 				logger.info("[BorderProtector] Nucleus not installed");
 			}
 		}
