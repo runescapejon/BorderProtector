@@ -24,13 +24,15 @@ import com.google.inject.Inject;
 
 import io.github.nucleuspowered.nucleus.api.NucleusAPI;
 import io.github.nucleuspowered.nucleus.api.service.NucleusRTPService;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import ninja.leaping.configurate.ConfigurationOptions;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.GuiceObjectMapperFactory;
 
-@Plugin(id = "borderprotector", name = "BorderProtector", description = "Secure your border with this", version = "1.3", dependencies = {
+@Plugin(id = "borderprotector", name = "BorderProtector", description = "Secure your border with this", version = "1.4", dependencies = {
 		@Dependency(id = "nucleus", optional = true) })
 public class BorderProtector {
 
@@ -55,7 +57,15 @@ public class BorderProtector {
 	public void BlockBypass(MoveEntityEvent event, @Getter("getTargetEntity") Player player) {
 		if (check(player)) {
 			player.sendMessage(Text.builder().append(Language.getMessage()).build());
+			//dismounting users from entities because while riding them they cannot get hurt by the world border damage or be teleported, this fixes it.
+			if (player.getBaseVehicle().canSee(player.getBaseVehicle())) {
+
+				EntityPlayer p = (EntityPlayer) player;
+				p.dismountEntity((Entity) player.getBaseVehicle());
+
+			}
 			if (Language.TeleportSpawn) {
+
 				event.setToTransform(event.getFromTransform().setLocation(player.getWorld().getSpawnLocation()));
 				Sponge.getScheduler().createTaskBuilder().delayTicks(1).execute(() -> event.setCancelled(true))
 						.submit(instance);
@@ -82,7 +92,7 @@ public class BorderProtector {
 
 				}
 			}
-			if (Language.UseNucleusRTP &&!Sponge.getPluginManager().getPlugin("nucleus").isPresent()) {
+			if (Language.UseNucleusRTP && !Sponge.getPluginManager().getPlugin("nucleus").isPresent()) {
 				logger.info("[BorderProtector] Nucleus not installed");
 			}
 		}
